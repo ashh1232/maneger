@@ -1,7 +1,10 @@
 // lib/controllers/product_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:maneger/class/crud.dart';
 import 'package:maneger/controller/talabat/cart_controllerw.dart';
+import 'package:maneger/linkapi.dart';
 import 'package:maneger/model/image_model.dart';
 import 'package:maneger/model/product_model.dart';
 // import 'package:talabat/controller/cart_controllerw.dart';
@@ -9,21 +12,19 @@ import 'package:maneger/model/product_model.dart';
 // import 'package:talabat/model/product_model.dart';
 
 class ProductController extends GetxController {
-  final RxBool isLoading = true.obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isImageLoading = false.obs;
   final RxInt currentImageIndex = 0.obs;
   final RxString selectedSize = ''.obs;
   final RxString selectedColor = 'Gray'.obs;
   final RxInt quantity = 1.obs;
   final RxBool isFavorite = false.obs;
+  final Crud _crud = Crud();
 
   final CartController cartController = Get.find<CartController>();
 
   final Rx<Product?> product = Rx<Product?>(null);
-  final RxList<Images> image = <Images>[
-    Images(image: '5777_1000072421.jpg', id: '1'),
-    Images(image: '7771_1000072408.jpg', id: '2'),
-    Images(image: '5937_1000072409.jpg', id: '3'),
-  ].obs;
+  final RxList<Images> image = <Images>[].obs;
 
   @override
   void onInit() {
@@ -39,21 +40,63 @@ class ProductController extends GetxController {
     isLoading.value = true;
   }
 
-  void checkInitialData() async {
+  checkInitialData() async {
     final arg = await Get.arguments;
     if (arg != null && arg is Product) {
-      product.value = arg;
+      return product.value = arg;
       isLoading.value = false;
+
+      // print(arg.id);
+      print('arg.id');
+    }
+    if (product.value != null) {
+      print('arg.id');
+      await getImages(product.value!.id);
+
+      print(product.value);
     }
   }
 
   @override
-  void onReady() {
+  void onReady() async {
     super.onReady();
     // onReady تُنفذ بعد أن تكون الواجهة قد استقرت وتم إنشاء الـ Overlay
     Future.delayed(const Duration(milliseconds: 300), () {
       loadProduct();
     });
+    // await getImages('product.value.id');
+  }
+
+  Future<void> getImages(String id) async {
+    print('id');
+    print(id);
+    if (isImageLoading.value) return;
+    try {
+      isImageLoading.value = true;
+      var respo = await _crud.postData(AppLink.proImages, {'pro_id': id});
+      respo.fold(
+        (status) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (Get.context != null && !Get.isSnackbarOpen) {
+              Get.rawSnackbar(
+                message: "خطأ في التحميل: $status",
+                duration: Duration(seconds: 2),
+              );
+            }
+          });
+        },
+        (res) {
+          if (res['status'] == 'success') {
+            final List<dynamic> decod = res['data'];
+            image.value = [];
+            image.value = decod.map((ban) => Images.fromJson(ban)).toList();
+          } else {}
+        },
+      );
+    } catch (e) {
+      Get.snackbar(('error'), 'error $e');
+    }
+    isImageLoading.value = false;
   }
 
   void loadProduct() {

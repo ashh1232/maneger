@@ -25,6 +25,9 @@ class ProductDetailView extends GetView<ProductController> {
     controller.product.value = pro;
     controller.quantity.value = 1;
     controller.product.value = pro;
+    controller.image.value = [];
+
+    controller.getImages(pro.id);
     return Scaffold(
       body:
           // Obx(() {
@@ -127,22 +130,26 @@ class ProductDetailView extends GetView<ProductController> {
                   children: [
                     PageView.builder(
                       onPageChanged: (index) => controller.selectImage(index),
-                      itemCount: controller.image.length,
+                      itemCount: controller.image.length + 1,
                       // itemCount: pro.images.length,
                       itemBuilder: (context, index) {
                         return Obx(
-                          () => CachedNetworkImage(
-                            imageUrl:
-                                AppLink.productsimages +
-                                controller
-                                    .image[controller.currentImageIndex.value]
-                                    .image,
+                          () => (CachedNetworkImage(
+                            imageUrl: (controller.currentImageIndex.value == 0)
+                                ? (AppLink.productsimages + pro.image)
+                                : (AppLink.productsimages +
+                                      controller
+                                          .image[controller
+                                                  .currentImageIndex
+                                                  .value -
+                                              1]
+                                          .image),
                             fit: BoxFit.cover,
                             placeholder: (context, url) =>
                                 Center(child: CircularProgressIndicator()),
                             errorWidget: (context, url, error) =>
                                 Icon(Icons.broken_image),
-                          ),
+                          )),
                         );
                       },
                     ),
@@ -157,7 +164,7 @@ class ProductDetailView extends GetView<ProductController> {
                             controller: PageController(
                               initialPage: controller.currentImageIndex.value,
                             ),
-                            count: controller.image.length,
+                            count: controller.image.length + 1,
                             effect: ScrollingDotsEffect(
                               activeDotColor: Colors.white,
                               dotColor: Colors.grey.shade400,
@@ -176,13 +183,13 @@ class ProductDetailView extends GetView<ProductController> {
               SizedBox(height: 12),
               SizedBox(
                 height: 80,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: controller.image.length,
-                  itemBuilder: (context, index) {
-                    return Obx(
-                      () => GestureDetector(
+                child: Obx(
+                  () => ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: controller.image.length + 1,
+                    itemBuilder: (context, index) {
+                      return GestureDetector(
                         onTap: () => controller.selectImage(index),
                         child: Container(
                           margin: EdgeInsets.only(right: 8),
@@ -198,9 +205,10 @@ class ProductDetailView extends GetView<ProductController> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(6),
                             child: CachedNetworkImage(
-                              imageUrl:
-                                  AppLink.productsimages +
-                                  controller.image[index].image,
+                              imageUrl: index == 0
+                                  ? AppLink.productsimages + pro.image
+                                  : AppLink.productsimages +
+                                        controller.image[index - 1].image,
                               fit: BoxFit.cover,
                               width: 70,
 
@@ -211,9 +219,9 @@ class ProductDetailView extends GetView<ProductController> {
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
               SizedBox(height: 12),
@@ -235,7 +243,7 @@ class ProductDetailView extends GetView<ProductController> {
     return Row(
       children: [
         Text(
-          "$currentPrice د.أ",
+          "$currentPrice شيكل",
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
