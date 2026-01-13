@@ -43,3 +43,18 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# test
+/lib/admin_link.dart
+lib/admin_link.dart
+admin_link.dart
+/test/
+/ios/
+/android/
+/.vscode/
+/.dart_tool/
+/.idea/
+pubspec.lock
+maneger.iml
+analysis_options.yaml
+.metadata
+.flutter-plugins-dependencies
