@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:maneger/controller/home_screen_controller.dart';
+import 'package:maneger/screen/admin/admin_home.dart';
 import 'package:maneger/screen/admin/edit_home_screen.dart';
 import 'package:maneger/screen/delivery/deli_home.dart';
 import 'package:maneger/screen/talabat/talabat_home_screen.dart'; // تأكد أن AniAppbarScreen مستوردة هنا
@@ -21,7 +22,7 @@ class HomeScreen extends GetView<HomeScreenController> {
           children: [
             TalabatHomeScreen(), // التبويب الرئيسي
             DeliHome(),
-            AdminProductScreen(),
+            AdminHome(),
             const Center(child: Text("Settings/Profile")),
           ],
         ),
