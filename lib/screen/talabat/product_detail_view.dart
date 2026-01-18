@@ -2,6 +2,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:maneger/controller/product_controller.dart';
 import 'package:maneger/linkapi.dart';
 import 'package:maneger/model/product_model.dart';
@@ -96,15 +97,14 @@ class ProductDetailView extends GetView<ProductController> {
       surfaceTintColor: Theme.of(context).colorScheme.surface,
 
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
+        icon: const Icon(Icons.arrow_back_ios_new_rounded),
         onPressed: () => Get.back(),
       ),
       title: Text(
         controller.product.value?.title ?? "تفاصيل المنتج",
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 14,
-        ), // تصغير الخط قليلاً
+        style: GoogleFonts.lalezar(fontSize: 28), // تصغير الخط قليلاً
+        textAlign: TextAlign.start,
+        maxLines: 1,
       ),
     );
   }

@@ -122,25 +122,21 @@ class CheckoutController extends GetxController {
   // Validate form
   bool validateForm() {
     if (nameController.text.trim().isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter your name',
-        backgroundColor: Colors.red.shade100,
-      );
+      Get.snackbar('خطأ', 'الاسم مطلوب', backgroundColor: Colors.red.shade100);
       return false;
     }
     if (phoneController.text.trim().isEmpty) {
       Get.snackbar(
-        'Error',
-        'Please enter your phone number',
+        'خطأ',
+        'رقم الهاتف مطلوب',
         backgroundColor: Colors.red.shade100,
       );
       return false;
     }
     if (addressController.text.trim().isEmpty) {
       Get.snackbar(
-        'Error',
-        'Please enter your address',
+        'خطأ',
+        'العنوان مطلوب',
         backgroundColor: Colors.red.shade100,
       );
       return false;

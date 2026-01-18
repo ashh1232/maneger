@@ -279,7 +279,7 @@ class CheckoutScreen extends StatelessWidget {
           const SizedBox(height: 8),
           _buildTextField(
             controller: controller.addressController,
-            label: 'العنوان',
+            label: 'الحاره',
             icon: Icons.location_on_outlined,
             maxLines: 2,
           ),

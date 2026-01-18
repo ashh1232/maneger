@@ -47,18 +47,23 @@ class MyThemes {
     colorScheme: ColorScheme.fromSeed(
       seedColor: Colors.white,
       brightness: Brightness.dark,
-      surface: const Color(0xFF1E1E1E), // لون سطح داكن مريح للعين
+      surface: const Color.fromARGB(255, 34, 34, 34), // لون سطح داكن مريح للعين
     ),
-    scaffoldBackgroundColor: const Color(0xFF121212), // خلفية داكنة OLED
+    scaffoldBackgroundColor: const Color.fromARGB(
+      255,
+      17,
+      17,
+      17,
+    ), // خلفية داكنة OLED
 
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF121212),
+      backgroundColor: Color.fromARGB(255, 32, 32, 32),
       elevation: 0,
       centerTitle: true,
     ),
 
     cardTheme: CardThemeData(
-      color: Colors.white12,
+      color: const Color.fromARGB(255, 34, 34, 34),
       elevation: 0.5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),

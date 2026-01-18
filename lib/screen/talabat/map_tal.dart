@@ -12,7 +12,7 @@ class MapTal extends StatelessWidget {
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        heroTag: "map_fab_unique_tag", // أي نص فريد
+        heroTag: "map_fab_unique_tagasdasd", // أي نص فريد
         onPressed: () {},
       ),
       // appBar: AppBar(title: const Text('الخريطة')),
@@ -49,7 +49,7 @@ class MapTal extends StatelessWidget {
                           child: const Icon(
                             Icons.navigation,
                             color: Colors.blue,
-                            size: 45,
+                            size: 30,
                           ),
                         ),
                       ),
@@ -71,7 +71,7 @@ class MapTal extends StatelessWidget {
             right: 20,
             bottom: 160, // فوق زر الموقع الحالي
             child: FloatingActionButton(
-              heroTag: null, // تعطيل الأنميشن التلقائي لحل المشكلة
+              heroTag: "map_edit_map", // أي نص فريد
 
               mini: true,
               backgroundColor: Colors.white,
@@ -123,7 +123,7 @@ class MapTal extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
+                // color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: const [
                   BoxShadow(color: Colors.black26, blurRadius: 10),
@@ -132,10 +132,10 @@ class MapTal extends StatelessWidget {
 
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                margin: const EdgeInsets.symmetric(horizontal: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 50),
                 decoration: BoxDecoration(
                   color: Colors.black,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(9),
                   boxShadow: const [
                     BoxShadow(color: Colors.black26, blurRadius: 10),
                   ],
@@ -164,11 +164,12 @@ class MapTal extends StatelessWidget {
             right: 20,
             bottom: 100,
             child: FloatingActionButton(
+              heroTag: "map_fab_unique_tag", // اسم فريد
               mini: true,
               backgroundColor: Colors.white,
               onPressed: () => mapController.mapController.move(
                 mapController.currentLatLng.value,
-                15.0,
+                17.0,
               ),
               child: const Icon(Icons.my_location, color: Colors.black),
             ),
@@ -177,6 +178,7 @@ class MapTal extends StatelessWidget {
             right: 20,
             top: 100,
             child: FloatingActionButton(
+              heroTag: "map_back_btn", // اسم فريد
               mini: true,
               backgroundColor: Colors.white,
               onPressed: () => Get.back(),

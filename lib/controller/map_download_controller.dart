@@ -1,11 +1,65 @@
 import 'dart:async'; // Required for StreamSubscription
+import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:maneger/model/product_model.dart';
 
 class MapDownloadController extends GetxController {
   late final FMTCStore _store;
+  final String apiKey = '7b362c35admshd7a14aad884a37fp14d67djsn33367535f0be';
+  var isLoading = false.obs;
+
+  final url = Uri.parse(
+    "https://shein-scraper-api.p.rapidapi.com/shein/product/details?goods_id=16477544&currency=usd&country=us&language=en",
+  );
+  final RxList<Product> productList = <Product>[].obs;
+
+  Future<void> getData() async {
+    if (isLoading.value) return;
+    try {
+      isLoading(true);
+      var response = await http
+          .get(
+            url,
+            headers: {
+              'x-rapidapi-host': 'shein-scraper-api.p.rapidapi.com',
+              'x-rapidapi-key': apiKey,
+            },
+          )
+          .timeout(const Duration(seconds: 10));
+      print(response.body);
+      if (response.statusCode == 200) {
+        print('aaaaaaaaaaaaaaaaaaaa');
+        var jsonResponse = json.decode(response.body);
+        List newDataList =
+            jsonResponse['data']; // Matches the "metadata" PHP structure
+        print('bbbbbbbbbbbbbbbbbbbb');
+        print(newDataList);
+        if (newDataList.isEmpty) {
+        } else {
+          List<Product> newProducts = newDataList
+              .map((json) => Product.fromJson(json))
+              .toList();
+          productList.addAll(newProducts);
+          if (jsonResponse['metadata'] != null) {
+            int currentPage = jsonResponse['metadata']['current_page'];
+            int totalPages = jsonResponse['metadata']['total_pages'];
+            if (currentPage >= totalPages) {
+              print(newDataList);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      var page;
+      if (page == 1) _showErrorSnackbar("تحقق من الاتصال بالإنترنت");
+    } finally {
+      isLoading(false);
+    }
+  }
 
   // Track the subscription to be able to cancel it later
   StreamSubscription<DownloadProgress>? _downloadSubscription;
@@ -20,6 +74,10 @@ class MapDownloadController extends GetxController {
 
   @override
   void onInit() {
+    print('productList');
+
+    getData();
+    print('productList');
     super.onInit();
     _store = FMTCStore('mapStore');
   }
@@ -94,4 +152,6 @@ class MapDownloadController extends GetxController {
     _downloadSubscription?.cancel();
     super.onClose();
   }
+
+  void _showErrorSnackbar(String s) {}
 }

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:maneger/class/handlingdataview.dart';
 import 'package:maneger/controller/shein_controller.dart';
 import 'package:maneger/linkapi.dart';
@@ -13,18 +14,11 @@ class CategoryPage extends GetView<CategoryController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFFF0F0),
+      // backgroundColor: Color(0xFFFFF0F0),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
-          'طلبات',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: Text('طلبات', style: GoogleFonts.lalezar(fontSize: 28)),
         centerTitle: true,
       ),
       body: CustomScrollView(

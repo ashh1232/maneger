@@ -75,6 +75,7 @@ class ProductController extends GetxController {
     try {
       isImageLoading.value = true;
       var respo = await _crud.postData(AppLink.proImages, {'pro_id': id});
+      if (isClosed) return;
       respo.fold(
         (status) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
