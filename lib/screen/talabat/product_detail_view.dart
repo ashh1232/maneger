@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:maneger/controller/product_controller.dart';
 import 'package:maneger/linkapi.dart';
 import 'package:maneger/model/product_model.dart';
+import 'package:maneger/widget/bot_nav_widget.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class ProductDetailView extends GetView<ProductController> {
@@ -86,7 +87,21 @@ class ProductDetailView extends GetView<ProductController> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomAction(context, pro),
+      bottomNavigationBar: BotNavWidget(
+        updateProductImage: "إضافة إلى السلة",
+        pro: pro,
+        controller: controller,
+        onPressed: () {
+          controller.addToCart(
+            id: pro.id,
+            img: pro.image,
+            title: pro.title,
+            price: pro.price,
+          );
+        },
+      ),
+
+      //  _buildBottomAction(context, pro),
     );
   }
 
