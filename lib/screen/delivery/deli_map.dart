@@ -116,6 +116,7 @@ class DeliMap extends StatelessWidget {
             right: 20,
             bottom: 160, // فوق زر الموقع الحالي
             child: FloatingActionButton(
+              heroTag: 'map_style',
               mini: true,
               backgroundColor: Colors.white,
               onPressed: () {
@@ -183,6 +184,7 @@ class DeliMap extends StatelessWidget {
             child: Column(
               children: [
                 _buildSideButton(
+                  tag: 'asdasd',
                   icon: Icons.satellite_alt,
                   onTap: () => controller.changeMapStyle(
                     controller.mapStyle.value == 'satellite'
@@ -193,6 +195,7 @@ class DeliMap extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 _buildSideButton(
+                  tag: 'dasss',
                   icon: Icons.dark_mode,
                   onTap: () => controller.changeMapStyle(
                     controller.mapStyle.value == 'dark' ? 'streets' : 'dark',
@@ -201,6 +204,7 @@ class DeliMap extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 _buildSideButton(
+                  tag: 'google',
                   icon: Icons.gps_fixed,
                   onTap: () => controller.changeMapStyle('google'),
                   isActive: controller.mapStyle.value == 'google',
@@ -209,6 +213,7 @@ class DeliMap extends StatelessWidget {
                 const SizedBox(height: 10),
 
                 _buildSideButton(
+                  tag: 'traffic',
                   icon: Icons.traffic,
                   onTap: () => controller.toggleTraffic(),
                   isActive: controller.showTraffic.value,
@@ -226,6 +231,7 @@ class DeliMap extends StatelessWidget {
             right: 20,
             bottom: 100,
             child: FloatingActionButton(
+              heroTag: 'my_loc',
               mini: true,
               backgroundColor: Colors.white,
               onPressed: () => controller.mapController.move(
@@ -246,10 +252,11 @@ class DeliMap extends StatelessWidget {
     required VoidCallback onTap,
     required bool isActive,
     Color activeColor = Colors.blue,
+    required String tag,
   }) {
     return FloatingActionButton(
       mini: true,
-      heroTag: null,
+      heroTag: tag,
       backgroundColor: isActive ? activeColor : Colors.white,
       onPressed: onTap,
       child: Icon(icon, color: isActive ? Colors.white : Colors.grey),

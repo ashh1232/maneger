@@ -106,7 +106,7 @@ class EditProductDetailView extends GetView<ImageUploadController> {
         );
       }),
       bottomNavigationBar: BotNavWidget(
-        pro: controller.product.value!,
+        // pro: controller.product.value!,
         controller: controller,
         isIcon: false,
         onPressed: () =>

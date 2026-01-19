@@ -4,8 +4,9 @@ import 'package:maneger/class/crud.dart';
 import 'package:maneger/class/statusrequest.dart';
 import 'package:maneger/linkapi.dart';
 import 'package:maneger/model/order_del_model.dart';
+import 'package:maneger/model/order_model.dart';
 
-class DeliveryHomeController extends GetxController {
+class DeliveryOrderDetailController extends GetxController {
   Rx<StatusRequest> statusRequest = StatusRequest.offline.obs;
   final Crud _crud = Crud();
   var isLoading = false.obs;
@@ -19,10 +20,21 @@ class DeliveryHomeController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    getOrders(); // انقل استدعاء البيانات إلى هنا
+
+    // ✅ الوصول للبيانات بدون ()
+    var arg = Get.arguments;
+
+    if (arg != null && arg is int) {
+      // يمكنك الآن استخدام المعرف لجلب تفاصيل الطلب
+      print("جاري جلب بيانات الطلب رقم: $arg");
+      getOrders(arg);
+    } else {
+      // حالة احتياطية إذا لم يتم إرسال وسائط
+      // getOrders();
+    }
   }
 
-  Future<void> getOrders() async {
+  Future<void> getOrders(int orderId) async {
     print('object');
     if (isLoading.value) return;
     statusRequest.value = StatusRequest.loading;
@@ -31,7 +43,7 @@ class DeliveryHomeController extends GetxController {
       isLoading.value = true;
       var respo = await _crud.postData(AppLink.delivery, {
         'action': 'get_order_details',
-        'order_id': '18',
+        'order_id': '$orderId',
       });
       print(respo);
       respo.fold(
@@ -55,8 +67,8 @@ class DeliveryHomeController extends GetxController {
             // final List<dynamic> decod = res['data'];
             print(orderData);
             // orders.value = orderData
-            //     .map((ban) => OrderModel.fromJson(ban))
-            //     .toList();
+            // .map((ban) => Order.fromJson(ban))
+            // .toList();
             orders.value = [OrderModel.fromJson(res['data'])];
           } else {
             statusRequest.value = StatusRequest.failure;

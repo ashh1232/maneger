@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:maneger/controller/auth/auth_controller.dart';
+import 'package:maneger/features/auth/presentation/controllers/auth_controller_clean.dart';
 import 'package:maneger/routes.dart';
 
 class LoginScreen extends StatelessWidget {
-  final AuthController authController = Get.put(AuthController());
+  final AuthControllerClean authController = Get.find<AuthControllerClean>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 

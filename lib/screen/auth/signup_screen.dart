@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:maneger/controller/auth/auth_controller.dart';
+import 'package:maneger/features/auth/presentation/controllers/auth_controller_clean.dart';
 
 class SignupScreen extends StatelessWidget {
-  final AuthController authController = Get.put(AuthController());
+  final AuthControllerClean authController = Get.find<AuthControllerClean>();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -113,9 +113,11 @@ class SignupScreen extends StatelessWidget {
                               return;
                             }
                             authController.signup(
-                              usernameController.text.trim(),
-                              emailController.text.trim(),
-                              passwordController.text.trim(),
+                              username: usernameController.text.trim(),
+                              email: emailController.text.trim(),
+                              password: passwordController.text.trim(),
+                              confirmPassword: confirmPasswordController.text
+                                  .trim(),
                             );
                           },
                     style: ElevatedButton.styleFrom(

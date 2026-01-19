@@ -44,8 +44,8 @@ class DetailScreen extends StatelessWidget {
                 height: 320,
                 child: PageView.builder(
                   itemCount: _images.length,
-                  itemBuilder:
-                      (context, index) => _networkImage(_images[index]),
+                  itemBuilder: (context, index) =>
+                      _networkImage(_images[index]),
                 ),
               ),
 
@@ -89,13 +89,12 @@ class DetailScreen extends StatelessWidget {
             child: const Center(child: CircularProgressIndicator()),
           );
         },
-        errorBuilder:
-            (context, error, stackTrace) => Container(
-              color: Colors.grey.shade200,
-              child: const Center(
-                child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
-              ),
-            ),
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.grey.shade200,
+          child: const Center(
+            child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+          ),
+        ),
       ),
     );
   }

@@ -9,6 +9,7 @@ class DeliveryHomeController extends GetxController {
   Rx<StatusRequest> statusRequest = StatusRequest.offline.obs;
   final Crud _crud = Crud();
   var isLoading = false.obs;
+
   final RxList<OrderModel> orders = <OrderModel>[].obs;
   // @override
   // void onInit() {

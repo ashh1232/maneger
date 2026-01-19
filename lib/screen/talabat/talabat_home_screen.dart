@@ -4,19 +4,22 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import 'package:maneger/controller/talabat/talabat_controller.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:maneger/core/constants/api_constants.dart';
+import 'package:maneger/features/products/presentation/controllers/product_controller_clean.dart';
 import 'package:maneger/linkapi.dart';
 import 'package:maneger/routes.dart';
 import 'package:maneger/screen/talabat/product_detail_view.dart';
 import 'package:maneger/service/theme_service.dart';
 import 'package:maneger/widget/loading_card.dart';
 import 'package:maneger/widget/product_card.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 
 class TalabatHomeScreen extends StatelessWidget {
   TalabatHomeScreen({super.key});
-  final TalabatController controller = Get.find();
+
+  // Use ProductControllerClean instead of TalabatController
+  final ProductControllerClean controller = Get.find<ProductControllerClean>();
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +27,9 @@ class TalabatHomeScreen extends StatelessWidget {
       drawer: _buildDrawer(),
       body: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification notification) {
-          // 1. نتحقق أن التمرير رأسي فقط (العمق 0 يعني السكرول الأساسي وليس الداخلي)
           if (notification.depth == 0 &&
               notification is ScrollUpdateNotification) {
-            // 2. نتحقق من المسافة
             bool isOverThreshold = notification.metrics.pixels > 50;
-
-            // 3. التحديث فقط إذا تغيرت الحالة فعلياً
             if (isOverThreshold != controller.isScrolled.value) {
               controller.toggleScroll(isOverThreshold);
             }
@@ -46,17 +45,13 @@ class TalabatHomeScreen extends StatelessWidget {
           slivers: [
             CupertinoSliverRefreshControl(
               onRefresh: () async {
-                controller.page = 1; // Reset page to 1
-                controller.hasMore(true); // Allow loading again
-                controller.productList.clear(); // Clear old data
-                await controller.initData();
+                controller.refreshAll();
               },
             ),
             SliverAppBar(
               surfaceTintColor: Theme.of(context).colorScheme.surface,
               pinned: true,
-              stretch: true, // يمنع الفراغات البيضاء عند السحب لأسفل
-
+              stretch: true,
               floating: false,
               expandedHeight: 220,
               elevation: 0,
@@ -66,24 +61,22 @@ class TalabatHomeScreen extends StatelessWidget {
                 background: _buildCarouselBanner(controller),
               ),
               bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(10), // المسافة المطلوبة
+                preferredSize: const Size.fromHeight(10),
                 child: Container(
                   height: 5,
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(500),
-                    ), // حواف دائرية تجعل الشبكة تبدو وكأنها تدخل تحت الـ AppBar
+                    ),
                   ),
                 ),
               ),
             ),
-
             SliverToBoxAdapter(
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 7),
                 height: 50,
-                // color: Get.isDarkMode ? Colors.black : Colors.grey.shade100,
                 child: _buildCobon(),
               ),
             ),
@@ -94,33 +87,36 @@ class TalabatHomeScreen extends StatelessWidget {
                     color: Theme.of(context).colorScheme.surface,
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 10),
-                  height: 180, // الارتفاع الكلي للشبكة
+                  height: 180,
                   child: GridView.builder(
                     scrollDirection: Axis.horizontal,
-                    // إضافة التنسيق لجعل المسافات أفضل
                     padding: const EdgeInsets.symmetric(horizontal: 2),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, // سيظهر صفين فوق بعضهما البعض
-                      mainAxisSpacing: 0, // المسافة الأفقية بين العناصر
-                      crossAxisSpacing: 5, // المسافة الرأسية بين الصفين
-                      childAspectRatio:
-                          0.8, // هام جداً: يتحكم في عرض العنصر (جرب 0.7 إلى 1.0)
-                    ),
-                    itemCount: controller.isCatLoading.value
-                        ? 10 // عدد عناصر التحميل
-                        : controller.catList.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 0,
+                          crossAxisSpacing: 5,
+                          childAspectRatio: 0.8,
+                        ),
+                    itemCount: controller.isCategoryLoading.value
+                        ? 10
+                        : controller.categories.length,
                     itemBuilder: (context, index) {
-                      if (controller.isCatLoading.value) {
+                      if (controller.isCategoryLoading.value) {
                         return const LoadingCard(height: 20);
                       }
+
+                      final cat = controller.categories[index];
+                      // Handle both full URLs and relative paths
+                      final imageUrl = cat.imageUrl.startsWith('http')
+                          ? cat.imageUrl
+                          : "${ApiConstants.categoriesImages}/${cat.imageUrl}";
+
                       return HomeCatItems(
-                        img: controller.catList[index].image.startsWith('https')
-                            ? controller.catList[index].image
-                            : AppLink.catsimages +
-                                  controller.catList[index].image,
-                        title: controller.catList[index].title,
+                        img: imageUrl,
+                        title: cat.title,
                         controller: controller,
-                        id: controller.catList[index].id,
+                        id: cat.id,
                       );
                     },
                   ),
@@ -128,29 +124,24 @@ class TalabatHomeScreen extends StatelessWidget {
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
-
             Obx(() {
               double screenWidth = MediaQuery.of(context).size.width;
-
-              // 2. نحدد عدد الأعمدة بناءً على العرض (عتبة الـ 600 بكسل هي المعيار للأجهزة اللوحية والمطوية)
               int crossAxisCount = screenWidth > 600 ? 4 : 2;
 
               return SliverPadding(
                 padding: EdgeInsetsGeometry.all(5),
                 sliver: SliverMasonryGrid.count(
-                  crossAxisCount:
-                      crossAxisCount, //// how to use 4 in samsong flod and 2 in normal phons
+                  crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 6,
                   mainAxisSpacing: 5,
-
                   childCount:
-                      controller.isLoading.value &&
-                          controller.productList.isEmpty
+                      controller.isLoading.value && controller.products.isEmpty
                       ? 9
-                      : controller.productList.length +
+                      : controller.products.length +
                             (controller.hasMore.value ? 1 : 0),
                   itemBuilder: (context, index) {
-                    if (index == controller.productList.length) {
+                    // Loading indicator at bottom
+                    if (index == controller.products.length) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.all(3.0),
@@ -158,51 +149,50 @@ class TalabatHomeScreen extends StatelessWidget {
                         ),
                       );
                     }
-                    if (controller.productList.isEmpty &&
+
+                    // Initial loading
+                    if (controller.products.isEmpty &&
                         controller.isLoading.value) {
                       return const LoadingCard(height: 150);
                     } else {
-                      final product = controller.productList[index];
+                      final product = controller.products[index];
+
+                      // Construct image URL
+                      final imageUrl = product.imageUrl.startsWith('http')
+                          ? product.imageUrl
+                          : "${ApiConstants.productsImages}/${product.imageUrl}";
+
+                      // Get blurHash
+                      final blurHash =
+                          (product.blurHash != null &&
+                              product.blurHash!.isNotEmpty)
+                          ? product.blurHash!
+                          : r"UgIE@UoL~qtR%2ofS4WB%MofWCbGxuj[V@fQ";
+
                       return OpenContainer(
                         transitionDuration: const Duration(milliseconds: 500),
-                        // لون الخلفية أثناء الانتقال
                         openColor: Colors.white,
                         closedColor: Colors.transparent,
                         closedElevation: 0,
-                        // شكل الكارت قبل الفتح
                         closedShape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        // الصفحة التي سيتم فتحها
                         openBuilder: (context, action) {
+                          // Pass new Product entity to updated DetailView
                           return ProductDetailView(manualProduct: product);
-                          // ملاحظة: GetX سيتعامل مع Arguments تلقائياً لأننا سنمررها في closedBuilder
                         },
-                        // الكارت الذي يراه المستخدم في القائمة
                         closedBuilder: (context, openContainer) {
                           return InkWell(
                             onTap: () {
-                              // نمرر البيانات يدوياً قبل الفتح لضمان وصولها لـ ProductDetailView
-                              // Get.arguments = product;
-                              openContainer(); // تشغيل أنميشن الفتح
+                              openContainer();
                             },
                             child: ProductCard(
                               index: index,
-                              img: product.image.startsWith('http')
-                                  ? product.image
-                                  : "${AppLink.productsimages}/${product.image}",
+                              img: imageUrl,
                               title: product.title,
-                              price:
-                                  double.tryParse(product.price.toString()) ??
-                                  0.0,
-                              oldPrice:
-                                  double.tryParse(
-                                    product.originalPrice.toString(),
-                                  ) ??
-                                  0.0,
-                              hash: product.blurHash.isEmpty
-                                  ? r"UgIE@UoL~qtR%2ofS4WB%MofWCbGxuj[V@fQ"
-                                  : product.blurHash, //Expected an identifier
+                              price: product.price, // Double
+                              oldPrice: product.originalPrice, // Double
+                              hash: blurHash,
                             ),
                           );
                         },
@@ -270,7 +260,6 @@ Widget _buildDrawer() {
             ThemeService().switchTheme();
           },
         ),
-
         ListTile(
           leading: Icon(Icons.person),
           title: Text('البروفايل'),
@@ -292,37 +281,33 @@ Widget _buildDrawer() {
   );
 }
 
-Widget _buildCarouselBanner(TalabatController controller) {
+Widget _buildCarouselBanner(ProductControllerClean controller) {
   return Obx(() {
-    if (controller.isBanLoading.value || controller.banners.isEmpty) {
-      return const LoadingCard(
-        height: 220,
-      ); // تأكد من مطابقة ارتفاع expandedHeight
+    if (controller.isBannerLoading.value || controller.banners.isEmpty) {
+      return const LoadingCard(height: 220);
     }
 
     return Stack(
       children: [
         PageView.builder(
-          physics:
-              const ClampingScrollPhysics(), // تمنع الارتداد الذي قد يرسل إشارات تمرير خاطئة
+          physics: const ClampingScrollPhysics(),
           allowImplicitScrolling: true,
           controller: controller.pageController,
           itemCount: controller.banners.length,
-          onPageChanged: (index) => controller.currentBannerIndex.value = index,
+          onPageChanged: (index) => controller.setBannerIndex(index),
           itemBuilder: (context, index) {
+            final banner = controller.banners[index];
+            final imageUrl = banner.imageUrl.startsWith('http')
+                ? banner.imageUrl
+                : "${ApiConstants.bannersImages}/${banner.imageUrl}";
+
             return CachedNetworkImage(
-              key: ValueKey(
-                controller.banners[index].id,
-              ), // الأفضل استخدام الـ ID
-              imageUrl: controller.banners[index].image.startsWith('http')
-                  ? controller.banners[index].image
-                  : AppLink.bannersimages + controller.banners[index].image,
-              fit: BoxFit.cover, // يضمن عدم تأثر أبعاد الـ AppBar بحجم الصورة
-              // ... الباقي كما هو
+              key: ValueKey(banner.id),
+              imageUrl: imageUrl,
+              fit: BoxFit.cover,
             );
           },
         ),
-        // يمكنك هنا إضافة Gradient خفيف في الأسفل ليظهر الـ AppBar بوضوح أكبر
         const Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -364,7 +349,6 @@ Widget _buildCobon() {
                     children: [
                       Text(
                         'عروض حصرية ',
-
                         style: TextStyle(
                           color: const Color.fromARGB(255, 66, 16, 0),
                           fontWeight: FontWeight.bold,
@@ -426,7 +410,7 @@ Widget _buildCobon() {
   );
 }
 
-Widget _buildSearchBar(TalabatController controller) {
+Widget _buildSearchBar(ProductControllerClean controller) {
   return Row(
     children: [
       Expanded(
@@ -440,14 +424,12 @@ Widget _buildSearchBar(TalabatController controller) {
               duration: const Duration(milliseconds: 300),
               child: controller.isScrolled.value
                   ? Container(
-                      height: 36, // نفس ارتفاع الـ Container الآخر
-                      alignment: Alignment.centerRight, // لضمان ثبات النص
+                      height: 36,
+                      alignment: Alignment.centerRight,
                       child: Text(
                         'طلبات',
                         key: const ValueKey(1),
-                        style: GoogleFonts.lalezar(
-                          fontSize: 28,
-                        ), // تقليل الخط قليلاً ليتناسب مع الارتفاع
+                        style: GoogleFonts.lalezar(fontSize: 28),
                       ),
                     )
                   : Container(
@@ -459,7 +441,6 @@ Widget _buildSearchBar(TalabatController controller) {
                         boxShadow: [
                           BoxShadow(
                             blurRadius: 6,
-                            // ignore: deprecated_member_use
                             color: Colors.black.withOpacity(0.08),
                             offset: Offset(0, 2),
                           ),
@@ -471,20 +452,17 @@ Widget _buildSearchBar(TalabatController controller) {
                           Icon(Icons.camera_alt_outlined, size: 22),
                           SizedBox(width: 8),
                           Expanded(
-                            child:
-                                //  _buildSearchBbar(controller),
-                                Text(
-                                  'ملابس رجالي و ستاتي',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
+                            child: Text(
+                              'ملابس رجالي و ستاتي',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
                           ),
                           Container(
                             decoration: BoxDecoration(
                               color: Colors.black,
-
                               borderRadius: BorderRadius.all(
                                 Radius.circular(5),
                               ),
@@ -532,9 +510,7 @@ Widget _buildSearchBar(TalabatController controller) {
           icon: Icon(
             Icons.shopping_cart_checkout_sharp,
             size: 24,
-            color: controller.isScrolled.value
-                ? Colors.black
-                : Colors.white, // تغيير اللون لجذب الانتباه
+            color: controller.isScrolled.value ? Colors.black : Colors.white,
           ),
         ),
       ),
@@ -542,44 +518,11 @@ Widget _buildSearchBar(TalabatController controller) {
   );
 }
 
-Widget _buildCategoryItem(String title, {bool isSelected = false}) {
-  return Padding(
-    padding: const EdgeInsets.only(right: 20),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            shadows: [
-              Shadow(
-                offset: Offset(0, 1),
-                blurRadius: 2,
-                color: Colors.black45,
-              ),
-            ],
-          ),
-        ),
-        if (isSelected)
-          Container(
-            margin: EdgeInsets.only(top: 4),
-            height: 2,
-            width: 20,
-            color: Colors.white,
-          ),
-      ],
-    ),
-  );
-}
-
 class HomeCatItems extends StatelessWidget {
   final String img;
   final String title;
   final String id;
-  final dynamic controller;
+  final ProductControllerClean controller;
 
   const HomeCatItems({
     super.key,
@@ -593,12 +536,10 @@ class HomeCatItems extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        // منطق الفلترة حسب القسم هنا
         Get.toNamed(AppRoutes.category, arguments: id);
       },
       child: Column(
         children: [
-          // دائرة الصورة
           Expanded(
             child: Container(
               width: 55,
@@ -607,7 +548,7 @@ class HomeCatItems extends StatelessWidget {
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withOpacity(0.05),
                     blurRadius: 5,
                     spreadRadius: 1,
                   ),
@@ -615,10 +556,9 @@ class HomeCatItems extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(3),
               child: ClipRRect(
-                borderRadius: BorderRadiusGeometry.circular(19),
+                borderRadius: BorderRadius.circular(19),
                 child: CachedNetworkImage(
-                  key: ValueKey(img), // أضف هذا السطر
-
+                  key: ValueKey(img),
                   imageUrl: img,
                   fit: BoxFit.cover,
                   errorWidget: (context, url, error) =>
@@ -633,7 +573,6 @@ class HomeCatItems extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          // اسم القسم
           Text(
             title,
             maxLines: 1,
@@ -645,28 +584,3 @@ class HomeCatItems extends StatelessWidget {
     );
   }
 }
-// Padding(
-//         padding: const EdgeInsets.symmetric(horizontal: 10),
-//         child: Row(
-//           children: [
-//             Icon(Icons.menu, color: Colors.white, size: 30),
-//             SizedBox(width: 15),
-//             Expanded(
-//               child: SingleChildScrollView(
-//                 scrollDirection: Axis.horizontal,
-//                 child: Row(
-//                   children: [
-//                     _buildCategoryItem("kids"),
-//                     _buildCategoryItem("shoes"),
-//                     _buildCategoryItem("electronics"),
-//                     _buildCategoryItem("woman"),
-//                     _buildCategoryItem("men"),
-//                     _buildCategoryItem("men"),
-//                     _buildCategoryItem("all", isSelected: true),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),

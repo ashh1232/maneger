@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:maneger/model/order_model.dart';
+import 'package:maneger/model/order_model.dart' as legacy;
 
 class DeliMapController extends GetxController {
   final MapController mapController = MapController();
@@ -19,6 +21,9 @@ class DeliMapController extends GetxController {
   var transportProfile = 'driving'.obs;
   var currentHeading = 0.0.obs; // إضافة متغير الاتجاه
   bool isMapReady = false;
+  ////
+  final Rx<Order?> order = Rx<Order?>(null);
+
   ////
   StreamSubscription<Position>? positionStream;
   DateTime? _lastFetchTime; // متغير لتخزين وقت آخر طلب
@@ -83,30 +88,31 @@ class DeliMapController extends GetxController {
       if (permission == LocationPermission.deniedForever) return;
     }
 
-    positionStream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10, // تحديث كل مترين لزيادة السلاسة
-      ),
-    ).listen((Position position) {
-      LatLng newPos = LatLng(position.latitude, position.longitude);
-      currentLatLng.value = newPos;
-      currentHeading.value = position.heading; // تحديث زاوية الدوران
-      // تحديث المسار
+    positionStream =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 10, // تحديث كل مترين لزيادة السلاسة
+          ),
+        ).listen((Position position) {
+          LatLng newPos = LatLng(position.latitude, position.longitude);
+          currentLatLng.value = newPos;
+          currentHeading.value = position.heading; // تحديث زاوية الدوران
+          // تحديث المسار
 
-      // الحل هنا: اطلب المسار فقط إذا مر أكثر من 5 ثوانٍ على آخر طلب
-      if (_lastFetchTime == null ||
-          DateTime.now().difference(_lastFetchTime!).inSeconds > 5) {
-        _lastFetchTime = DateTime.now();
-        fetchRoute();
-      }
+          // الحل هنا: اطلب المسار فقط إذا مر أكثر من 5 ثوانٍ على آخر طلب
+          if (_lastFetchTime == null ||
+              DateTime.now().difference(_lastFetchTime!).inSeconds > 5) {
+            _lastFetchTime = DateTime.now();
+            fetchRoute();
+          }
 
-      if (isMapReady) {
-        try {
-          mapController.moveAndRotate(newPos, 17.5, position.heading);
-        } catch (e) {}
-      }
-    });
+          if (isMapReady) {
+            try {
+              mapController.moveAndRotate(newPos, 17.5, position.heading);
+            } catch (e) {}
+          }
+        });
   }
 
   Future<void> fetchRoute() async {
@@ -132,12 +138,10 @@ class DeliMapController extends GetxController {
 
         // تحديث المسافة
         final data = jsonDecode(response.body);
-        distanceRemaining.value =
-            (data['routes'][0]['distance'] as num).toDouble();
-
+        distanceRemaining.value = (data['routes'][0]['distance'] as num)
+            .toDouble();
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   // ميزة إضافية: التحويل التلقائي للوضع الليلي بناءً على وقت الجهاز (2026)

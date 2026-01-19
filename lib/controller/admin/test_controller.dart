@@ -13,7 +13,7 @@ class TestController extends GetxController {
 
   @override
   void onInit() {
-    getData();
+    getData(); // Disabled to prevent API spam and conflicts with Clean Architecture
     super.onInit();
   }
 
@@ -35,7 +35,7 @@ class TestController extends GetxController {
     if (statusRequest.value == StatusRequest.success) {
       if (respo['status'] == "success") {
         List<dynamic> decod = respo['data'];
-
+        print('object');
         // تحويل البيانات وتحديث القائمة
         List<Product> newList = decod.map((e) => Product.fromJson(e)).toList();
         data.assignAll(newList);

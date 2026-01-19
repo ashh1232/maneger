@@ -139,6 +139,7 @@ class FlutMap extends StatelessWidget {
             right: 20,
             bottom: 160, // فوق زر الموقع الحالي
             child: FloatingActionButton(
+              heroTag: 'sheet',
               mini: true,
               backgroundColor: Colors.white,
               onPressed: () {
@@ -237,6 +238,7 @@ class FlutMap extends StatelessWidget {
             right: 20,
             bottom: 100, // فوق أزرار اختيار الوسيلة
             child: FloatingActionButton(
+              heroTag: 'animate',
               mini: true,
               backgroundColor: Colors.white,
               onPressed: () => controller.mapController.animateTo(

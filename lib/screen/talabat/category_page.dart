@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:maneger/class/handlingdataview.dart';
 import 'package:maneger/controller/shein_controller.dart';
+import 'package:maneger/core/constants/api_constants.dart';
 import 'package:maneger/linkapi.dart';
 import 'package:maneger/routes.dart';
 import 'package:shimmer/shimmer.dart';
@@ -43,7 +44,7 @@ class CategoryPage extends GetView<CategoryController> {
                           imageUrl:
                               controller.banner[index].image.startsWith('http')
                               ? controller.banner[index].image
-                              : AppLink.bannersimages +
+                              : ApiConstants.bannersImages +
                                     controller.banner[index].image,
                           fit: BoxFit.cover,
                           errorWidget: (context, url, error) =>
@@ -177,7 +178,7 @@ class CategoryPage extends GetView<CategoryController> {
                   final imageUrl =
                       controller.productList[index].image.startsWith('http')
                       ? controller.productList[index].image
-                      : AppLink.productsimages +
+                      : ApiConstants.productsImages +
                             controller.productList[index].image;
                   return InkWell(
                     onTap: () => Get.toNamed(

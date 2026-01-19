@@ -1,15 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:maneger/controller/talabat/cart_controllerw.dart';
-import 'package:maneger/linkapi.dart';
-import 'package:maneger/model/product_model.dart';
-import 'package:path/path.dart';
-// import 'package:maneger/trash/product_model.dart';
+import 'package:maneger/core/constants/api_constants.dart';
+import 'package:maneger/features/cart/domain/entities/cart_item.dart';
+import 'package:maneger/features/cart/presentation/controllers/cart_controller_clean.dart';
+import 'package:maneger/features/products/domain/entities/product.dart';
 
 class CartPage extends StatelessWidget {
   CartPage({super.key});
-  final CartController cartController = Get.find<CartController>();
+  // Use the new clean controller
+  final CartControllerClean cartController = Get.find<CartControllerClean>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +29,7 @@ class CartPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (cartController.products.isEmpty) {
+        if (cartController.cartItems.isEmpty) {
           return _buildEmptyCart();
         }
 
@@ -88,7 +89,7 @@ class CartPage extends StatelessWidget {
               const SizedBox(width: 8),
               Obx(
                 () => Text(
-                  'الكل (${cartController.products.length})',
+                  'الكل (${cartController.cartItems.length})',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -102,10 +103,10 @@ class CartPage extends StatelessWidget {
         Expanded(
           child: Obx(
             () => ListView.builder(
-              itemCount: cartController.products.length,
+              itemCount: cartController.cartItems.length,
               itemBuilder: (context, index) {
-                final product = cartController.products[index];
-                return _buildCartItem(context, product, index);
+                final item = cartController.cartItems[index];
+                return _buildCartItem(context, item, index);
               },
             ),
           ),
@@ -116,7 +117,9 @@ class CartPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCartItem(BuildContext context, Product product, int index) {
+  Widget _buildCartItem(BuildContext context, CartItem item, int index) {
+    final Product product = item.product;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       padding: const EdgeInsets.all(12),
@@ -137,8 +140,16 @@ class CartPage extends StatelessWidget {
           Row(
             children: [
               Obx(
+                // Use a key to force rebuild if item changes significantly
+                // But for checkboxes, standard reactivity should work.
+                // However, we need to access the reactive list from controller to ensure updates?
+                // Actually 'item' here is from the list in global Obx, so it's fresh.
+                // BUT 'item.isSelected' is a property of the CartItem Entity which is Equatable (immutable).
+                // So when we toggle, we replace the item.
+                // The parent ListView Obx will rebuild this widget completely.
+                // So context.rebuild happens.
                 () => Checkbox(
-                  value: cartController.products[index].isSelected,
+                  value: cartController.cartItems[index].isSelected,
                   onChanged: (value) {
                     cartController.updateSelectedCount(index, value ?? false);
                   },
@@ -148,15 +159,14 @@ class CartPage extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(5),
                 child: CachedNetworkImage(
-                  key: ValueKey(product.image), // أضف هذا السطر
+                  key: ValueKey(product.imageUrl),
 
-                  imageUrl: product.image.startsWith('http')
-                      ? product.image
-                      : "${AppLink.productsimages}/${product.image}",
+                  imageUrl: product.imageUrl.startsWith('http')
+                      ? product.imageUrl
+                      : "${ApiConstants.productsImages}/${product.imageUrl}",
                   width: 80,
                   height: 80,
                   fit: BoxFit.cover,
-                  // إضافة ذاكرة تخزين مؤقت صغيرة للصور في السلة لتوفير الرام
                   memCacheWidth: 200,
                   memCacheHeight: 200,
                   placeholder: (context, url) => Container(
@@ -198,7 +208,7 @@ class CartPage extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          product.price,
+                          product.displayPrice, // Use displayPrice getter
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -206,14 +216,15 @@ class CartPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          product.originalPrice,
-                          style: TextStyle(
-                            fontSize: 12,
-                            decoration: TextDecoration.lineThrough,
-                            color: Colors.grey[500],
+                        if (product.originalPrice > product.price)
+                          Text(
+                            product.displayOriginalPrice,
+                            style: TextStyle(
+                              fontSize: 12,
+                              decoration: TextDecoration.lineThrough,
+                              color: Colors.grey[500],
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ],
@@ -245,10 +256,10 @@ class CartPage extends StatelessWidget {
                   child: Row(
                     children: [
                       InkWell(
-                        onTap: product.quantity > 1
+                        onTap: item.quantity > 1
                             ? () => cartController.updateQuantity(
                                 index,
-                                product.quantity - 1,
+                                item.quantity - 1,
                               )
                             : null,
                         child: const Icon(Icons.remove, size: 18),
@@ -256,14 +267,14 @@ class CartPage extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
-                          '${product.quantity}',
+                          '${item.quantity}',
                           style: const TextStyle(fontSize: 14),
                         ),
                       ),
                       InkWell(
                         onTap: () => cartController.updateQuantity(
                           index,
-                          product.quantity + 1,
+                          item.quantity + 1,
                         ),
                         child: const Icon(Icons.add, size: 18),
                       ),

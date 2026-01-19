@@ -1,96 +1,274 @@
+// import 'package:cached_network_image/cached_network_image.dart';
 // import 'package:flutter/material.dart';
 // import 'package:get/get.dart';
-// import 'package:newmanager/class/crud.dart';
-// import 'package:newmanager/class/statusrequest.dart';
-// import 'package:newmanager/data/remote/test.dart';
-// import 'package:newmanager/trash/product.dart';
-// import 'dart:async';
+// import 'package:maneger/core/constants/api_constants.dart';
+// import 'package:maneger/features/products/presentation/controllers/product_detail_controller.dart';
 
-// import '../class/handlingdatacontroll.dart';
+// class ProductDetailView extends StatelessWidget {
+//   final Object? manualProduct;
 
-// class AniAppbarController extends GetxController {
-//   TestData testdata = TestData(Get.find());
+//   const ProductDetailView({super.key, this.manualProduct});
 
-//   final Crud crud = Crud();
-//   List<Product> productList = [];
-//   late StatusRequest statusRequest;
-//   var currentBannerIndex = 0.obs;
-//   final PageController pageController = PageController();
-//   Timer? _bannerTimer;
+//   @override
+//   Widget build(BuildContext context) {
+//     // Inject Controller
+//     final ProductDetailController controller = Get.put(
+//       ProductDetailController(),
+//     );
 
-//   // final RxInt currentBannerIndex = 0.obs;
-//   final RxBool isScrolled = false.obs;
-
-//   final List<String> banners = [
-//     'https://www.shutterstock.com/shutterstock/photos/1841495716/display_1500/stock-vector-great-discount-sale-banner-design-in-d-illustration-on-blue-background-sale-word-balloon-on-1841495716.jpg',
-//     'https://marketplace.canva.com/EAE6GJRFBO8/2/0/1600w/canva-red-and-white-modern-online-sale-and-discount-banner-EQntJWpYr4w.jpg',
-//     'https://marketplace.canva.com/EAFooJN9KIw/2/0/400w/canva-yellow-red-modern-fried-chicken-promotion-banner-zaHTluSB__o.jpg',
-//     'https://marketplace.canva.com/EAFooCj7wG0/3/0/1600w/canva-yellow-creative-noodle-food-promotion-banner-3SN7GKnyHMw.jpg',
-//     'https://static.vecteezy.com/system/resources/previews/002/453/533/non_2x/big-sale-discount-banner-template-promotion-illustration-free-vector.jpg',
-//   ];
-//   getdata() async {
-//     statusRequest = StatusRequest.loading;
-//     var respo = await testdata.getdata();
-//     statusRequest = handlingData(respo);
-
-//     if (statusRequest == StatusRequest.success) {
-//       if (respo['status'] == 'success') {
-//         productList.clear();
-
-//         // productList.addAll(respo['data']);
-//         final List<dynamic> decodedList = respo['data'];
-//         // 2. Map the dynamic list to a List of actual Product objects
-//         final List<Product> fetchedProducts =
-//             decodedList.map((item) {
-//               return Product.fromJson(item as Map<String, dynamic>);
-//             }).toList();
-
-//         productList.addAll(fetchedProducts);
-//       }
+//     // Set manual product if provided
+//     if (manualProduct != null) {
+//       controller.setProduct(manualProduct);
 //     }
-//   }
 
-//   @override
-//   void onInit() {
-//     super.onInit();
-//     // pageController = PageController();
-//     _startBannerAutoPlay();
-//     getdata();
-//   }
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+//       appBar: AppBar(
+//         backgroundColor: Colors.white,
+//         elevation: 0,
+//         leading: IconButton(
+//           icon: const Icon(Icons.arrow_back, color: Colors.black),
+//           onPressed: () => Get.back(),
+//         ),
+//         actions: [
+//           IconButton(
+//             icon: const Icon(Icons.favorite_border, color: Colors.black),
+//             onPressed: () {
+//               Get.snackbar('Coming Soon', 'Favorites not available yet');
+//             },
+//           ),
+//         ],
+//       ),
+//       body: Obx(() {
+//         if (controller.product.value == null) {
+//           return const Center(child: CircularProgressIndicator());
+//         }
 
-//   void _startBannerAutoPlay() {
-//     _bannerTimer = Timer.periodic(Duration(seconds: 4), (_) {
-//       // Check clients *before* calculation
-//       if (!pageController.hasClients || banners.isEmpty) return;
+//         final product = controller.product.value!;
 
-//       final next = (currentBannerIndex.value + 1) % banners.length;
+//         return Column(
+//           children: [
+//             Expanded(
+//               child: SingleChildScrollView(
+//                 child: Column(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     // Product Image
+//                     Hero(
+//                       tag: product.id,
+//                       child: Container(
+//                         height: 350,
+//                         width: double.infinity,
+//                         decoration: const BoxDecoration(
+//                           color: Color(0xFFF5F5F5),
+//                         ),
+//                         child: CachedNetworkImage(
+//                           imageUrl: product.imageUrl.startsWith('http')
+//                               ? product.imageUrl
+//                               : "${ApiConstants.productsImages}/${product.imageUrl}",
+//                           fit: BoxFit.cover,
+//                           errorWidget: (context, url, error) => const Icon(
+//                             Icons.image_not_supported,
+//                             size: 50,
+//                             color: Colors.grey,
+//                           ),
+//                           placeholder: (context, url) =>
+//                               const Center(child: CircularProgressIndicator()),
+//                         ),
+//                       ),
+//                     ),
 
-//       // Use jumpToPage if you don't need the animation,
-//       // which is slightly safer during rapid changes
-//       // pageController.jumpToPage(next);
+//                     Padding(
+//                       padding: const EdgeInsets.all(20),
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           Row(
+//                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                             crossAxisAlignment: CrossAxisAlignment.start,
+//                             children: [
+//                               Expanded(
+//                                 child: Text(
+//                                   product.title,
+//                                   style: const TextStyle(
+//                                     fontSize: 24,
+//                                     fontWeight: FontWeight.bold,
+//                                   ),
+//                                 ),
+//                               ),
+//                               Column(
+//                                 crossAxisAlignment: CrossAxisAlignment.end,
+//                                 children: [
+//                                   Text(
+//                                     '\$${product.displayPrice}',
+//                                     style: const TextStyle(
+//                                       fontSize: 24,
+//                                       fontWeight: FontWeight.bold,
+//                                     ),
+//                                   ),
+//                                   if (product.originalPrice > product.price)
+//                                     Text(
+//                                       '\$${product.displayOriginalPrice}',
+//                                       style: const TextStyle(
+//                                         fontSize: 16,
+//                                         color: Colors.grey,
+//                                         decoration: TextDecoration.lineThrough,
+//                                       ),
+//                                     ),
+//                                 ],
+//                               ),
+//                             ],
+//                           ),
+//                           const SizedBox(height: 10),
 
-//       // Or keep animateToPage with careful usage:
-//       pageController.animateToPage(
-//         next,
-//         duration: Duration(milliseconds: 500),
-//         curve: Curves.easeInOut,
-//       );
-//       setBannerIndex(next);
-//     });
-//   }
+//                           // Rating (Mock)
+//                           Row(
+//                             children: [
+//                               Container(
+//                                 padding: const EdgeInsets.symmetric(
+//                                   horizontal: 8,
+//                                   vertical: 4,
+//                                 ),
+//                                 decoration: BoxDecoration(
+//                                   color: Colors.black,
+//                                   borderRadius: BorderRadius.circular(4),
+//                                 ),
+//                                 child: const Row(
+//                                   children: [
+//                                     Icon(
+//                                       Icons.star,
+//                                       color: Colors.white,
+//                                       size: 16,
+//                                     ),
+//                                     SizedBox(width: 4),
+//                                     Text(
+//                                       '4.8',
+//                                       style: TextStyle(
+//                                         color: Colors.white,
+//                                         fontWeight: FontWeight.bold,
+//                                       ),
+//                                     ),
+//                                   ],
+//                                 ),
+//                               ),
+//                               const SizedBox(width: 8),
+//                               const Text(
+//                                 'Reviews',
+//                                 style: TextStyle(color: Colors.grey),
+//                               ),
+//                             ],
+//                           ),
+//                           const SizedBox(height: 20),
 
-//   void setBannerIndex(int index) {
-//     currentBannerIndex.value = index;
-//   }
+//                           // Description
+//                           const Text(
+//                             'Description',
+//                             style: TextStyle(
+//                               fontSize: 18,
+//                               fontWeight: FontWeight.bold,
+//                             ),
+//                           ),
+//                           const SizedBox(height: 10),
+//                           Text(
+//                             product.description,
+//                             style: TextStyle(
+//                               fontSize: 14,
+//                               color: Colors.grey[600],
+//                               height: 1.5,
+//                             ),
+//                           ),
+//                           const SizedBox(height: 20),
 
-//   void toggleScroll(bool value) {
-//     isScrolled.value = value;
-//   }
+//                           // Quantity
+//                           Row(
+//                             children: [
+//                               const Text(
+//                                 'Quantity',
+//                                 style: TextStyle(
+//                                   fontSize: 18,
+//                                   fontWeight: FontWeight.bold,
+//                                 ),
+//                               ),
+//                               const Spacer(),
+//                               Container(
+//                                 decoration: BoxDecoration(
+//                                   border: Border.all(color: Colors.grey[300]!),
+//                                   borderRadius: BorderRadius.circular(8),
+//                                 ),
+//                                 child: Row(
+//                                   children: [
+//                                     IconButton(
+//                                       icon: const Icon(Icons.remove),
+//                                       onPressed: controller.decreaseQuantity,
+//                                     ),
+//                                     Obx(
+//                                       () => Text(
+//                                         '${controller.quantity.value}',
+//                                         style: const TextStyle(
+//                                           fontSize: 18,
+//                                           fontWeight: FontWeight.bold,
+//                                         ),
+//                                       ),
+//                                     ),
+//                                     IconButton(
+//                                       icon: const Icon(Icons.add),
+//                                       onPressed: controller.increaseQuantity,
+//                                     ),
+//                                   ],
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ),
 
-//   @override
-//   void onClose() {
-//     _bannerTimer?.cancel();
-//     pageController.dispose();
-//     super.onClose();
+//             // Bottom Add to Cart Button
+//             Container(
+//               padding: const EdgeInsets.all(20),
+//               decoration: BoxDecoration(
+//                 color: Colors.white,
+//                 boxShadow: [
+//                   BoxShadow(
+//                     color: Colors.black.withOpacity(0.05),
+//                     blurRadius: 10,
+//                     offset: const Offset(0, -5),
+//                   ),
+//                 ],
+//               ),
+//               child: SafeArea(
+//                 child: SizedBox(
+//                   width: double.infinity,
+//                   child: ElevatedButton(
+//                     onPressed: () {
+//                       controller.addToCart();
+//                     },
+//                     style: ElevatedButton.styleFrom(
+//                       backgroundColor: Colors.black,
+//                       padding: const EdgeInsets.symmetric(vertical: 16),
+//                       shape: RoundedRectangleBorder(
+//                         borderRadius: BorderRadius.circular(12),
+//                       ),
+//                     ),
+//                     child: const Text(
+//                       'Add to Cart',
+//                       style: TextStyle(
+//                         color: Colors.white,
+//                         fontSize: 18,
+//                         fontWeight: FontWeight.bold,
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           ],
+//         );
+//       }),
+//     );
 //   }
 // }
